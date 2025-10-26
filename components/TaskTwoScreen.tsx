@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { USERS, TASK_TWO_ROUNDS } from '../constants';
 import { ArrowDirection } from '../types';
@@ -9,18 +8,18 @@ import UserPanel from './shared/UserPanel';
 interface TaskTwoScreenProps {
   onSuccess: () => void;
   onFailure: () => void;
-  currentUser: User;
 }
 
 const DIRECTIONS = Object.values(ArrowDirection);
-const ROUND_TIME_LIMIT = 5000;
-const DELAY_BETWEEN_ROUNDS = 3000;
+const ROUND_TIME_LIMIT = 1000;
+const DELAY_BETWEEN_ROUNDS = 1000;
 
 //- Fix: Changed return type from JSX.Element to React.ReactElement to resolve JSX namespace error.
-export default function TaskTwoScreen({ onSuccess, onFailure, currentUser }: TaskTwoScreenProps): React.ReactElement {
+export default function TaskTwoScreen({ onSuccess, onFailure }: TaskTwoScreenProps): React.ReactElement {
   const [round, setRound] = useState(1);
   const [targetUser, setTargetUser] = useState<User | null>(null);
   const [targetDirection, setTargetDirection] = useState<ArrowDirection | null>(null);
+  const [progress, setProgress] = useState(0);
 
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -35,6 +34,7 @@ export default function TaskTwoScreen({ onSuccess, onFailure, currentUser }: Tas
 
     setTargetUser(newTargetUser);
     setTargetDirection(newTargetDirection);
+    setProgress(100);
 
     timeoutRef.current = setTimeout(() => {
         onFailure();
@@ -48,6 +48,19 @@ export default function TaskTwoScreen({ onSuccess, onFailure, currentUser }: Tas
 
     return () => clearTimeout(delayTimer);
   }, [round, nextRound]);
+  
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+    if (targetUser) {
+      interval = setInterval(() => {
+        setProgress(p => Math.max(0, p - (100 / (ROUND_TIME_LIMIT / 100))));
+      }, 100);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [targetUser]);
+
 
   const handleArrowClick = (clickedUser: User, direction: ArrowDirection) => {
     if (timeoutRef.current) {
@@ -76,27 +89,21 @@ export default function TaskTwoScreen({ onSuccess, onFailure, currentUser }: Tas
          {!targetUser && round <= TASK_TWO_ROUNDS && (
             <p className="text-2xl md:text-4xl text-gray-400 h-12">Pripravi se...</p>
          )}
+         <div className="w-full bg-slate-700 rounded-full h-2.5 mt-4">
+            <div className="bg-red-600 h-2.5 rounded-full" style={{ width: `${progress}%`, transition: 'width 0.1s linear' }}></div>
+        </div>
        </div>
-       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 w-full">
+       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
         {USERS.map(user => (
           <UserPanel key={user} user={user} isSelected={user === targetUser}>
-             {user === currentUser ? (
-                <div className="grid grid-cols-3 grid-rows-2 gap-2 mt-4">
-                    <div />
-                    <button onClick={() => handleArrowClick(user, ArrowDirection.Up)} className="p-2 bg-slate-700 rounded hover:bg-slate-600"><ArrowUp /></button>
-                    <div />
-                    <button onClick={() => handleArrowClick(user, ArrowDirection.Left)} className="p-2 bg-slate-700 rounded hover:bg-slate-600"><ArrowLeft /></button>
-                    <button onClick={() => handleArrowClick(user, ArrowDirection.Down)} className="p-2 bg-slate-700 rounded hover:bg-slate-600"><ArrowDown /></button>
-                    <button onClick={() => handleArrowClick(user, ArrowDirection.Right)} className="p-2 bg-slate-700 rounded hover:bg-slate-600"><ArrowRight /></button>
-                </div>
-             ) : (
-                <div className="mt-4 flex items-center justify-center h-[88px] text-slate-500">
-                   <svg className="animate-spin h-8 w-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                </div>
-             )}
+             <div className="grid grid-cols-3 grid-rows-2 gap-2 mt-4">
+                <div />
+                <button onClick={() => handleArrowClick(user, ArrowDirection.Up)} className="p-2 bg-slate-700 rounded hover:bg-slate-600"><ArrowUp /></button>
+                <div />
+                <button onClick={() => handleArrowClick(user, ArrowDirection.Left)} className="p-2 bg-slate-700 rounded hover:bg-slate-600"><ArrowLeft /></button>
+                <button onClick={() => handleArrowClick(user, ArrowDirection.Down)} className="p-2 bg-slate-700 rounded hover:bg-slate-600"><ArrowDown /></button>
+                <button onClick={() => handleArrowClick(user, ArrowDirection.Right)} className="p-2 bg-slate-700 rounded hover:bg-slate-600"><ArrowRight /></button>
+             </div>
           </UserPanel>
         ))}
       </div>
