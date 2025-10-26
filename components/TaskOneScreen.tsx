@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { USERS, TASK_ONE_ANSWERS } from '../constants';
 import type { User } from '../types';
@@ -7,14 +6,14 @@ import UserPanel from './shared/UserPanel';
 interface TaskOneScreenProps {
   onSuccess: () => void;
   onFailure: () => void;
-  currentUser: User;
 }
 
-const TASK_ONE_TIME_LIMIT = 3000;
+const TASK_ONE_TIME_LIMIT = 5000;
 
 //- Fix: Changed return type from JSX.Element to React.ReactElement to resolve JSX namespace error.
-export default function TaskOneScreen({ onSuccess, onFailure, currentUser }: TaskOneScreenProps): React.ReactElement {
+export default function TaskOneScreen({ onSuccess, onFailure }: TaskOneScreenProps): React.ReactElement {
   const [userInputs, setUserInputs] = useState<Map<User, number>>(new Map());
+  const [timeLeft, setTimeLeft] = useState(TASK_ONE_TIME_LIMIT / 1000);
 
   const handleNumberClick = (user: User, number: number) => {
     if (userInputs.has(user)) return;
@@ -49,49 +48,46 @@ export default function TaskOneScreen({ onSuccess, onFailure, currentUser }: Tas
   
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (userInputs.size < USERS.length) {
-        onFailure();
-      }
+      onFailure();
     }, TASK_ONE_TIME_LIMIT);
+
+    const interval = setInterval(() => {
+      setTimeLeft(prev => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
 
     return () => {
       clearTimeout(timer);
+      clearInterval(interval);
     };
-  }, [onFailure, userInputs.size]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="flex flex-col items-center justify-center w-full animate-fadeIn">
       <div className="mb-6 text-center">
         <h2 className="text-xl md:text-2xl font-bold text-purple-400">Kdo ima največ črk?</h2>
+        <p className="text-lg md:text-xl text-orange-300">Uredite se po številu črk v imenu (od največ do najmanj) in izberite pravo številko.</p>
+        <p className="text-2xl font-creepster text-red-500 animate-pulse mt-2">Čas: {timeLeft}s</p>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 w-full">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
         {USERS.map(user => (
           <UserPanel key={user} user={user} isSelected={userInputs.has(user)} >
-             {user === currentUser ? (
-                <div className="grid grid-cols-2 gap-2 mt-4">
-                  {[1, 2, 3, 4].map(num => (
-                    <button 
-                      key={num}
-                      onClick={() => handleNumberClick(user, num)}
-                      disabled={userInputs.has(user)}
-                      className={`p-3 text-lg font-bold rounded-md transition-colors ${
-                        userInputs.get(user) === num 
-                          ? 'bg-green-600' 
-                          : 'bg-slate-700 hover:bg-slate-600'
-                      } disabled:opacity-50 disabled:hover:bg-slate-700`}
-                    >
-                      {num}
-                    </button>
-                  ))}
-                </div>
-             ) : (
-                <div className="mt-4 flex items-center justify-center h-[96px] text-slate-500">
-                  <svg className="animate-spin h-8 w-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                </div>
-             )}
+             <div className="grid grid-cols-3 gap-2 mt-4">
+               {[1, 2, 3].map(num => (
+                 <button 
+                   key={num}
+                   onClick={() => handleNumberClick(user, num)}
+                   disabled={userInputs.has(user)}
+                   className={`p-3 text-lg font-bold rounded-md transition-colors ${
+                     userInputs.get(user) === num 
+                       ? 'bg-green-600' 
+                       : 'bg-slate-700 hover:bg-slate-600'
+                   } disabled:opacity-50 disabled:hover:bg-slate-700`}
+                 >
+                   {num}
+                 </button>
+               ))}
+             </div>
           </UserPanel>
         ))}
       </div>
