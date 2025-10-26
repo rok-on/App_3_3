@@ -11,7 +11,7 @@ const LOGIN_TIME_LIMIT = 3000;
 //- Fix: Changed return type from JSX.Element to React.ReactElement to resolve JSX namespace error.
 export default function LoginScreen({ onSuccess }: LoginScreenProps): React.ReactElement {
   const [clickedUsers, setClickedUsers] = useState<Set<User>>(new Set());
-  const [message, setMessage] = useState<string>('Pripravljeni?');
+  const [message, setMessage] = useState<string>('Vsak naj klikne svoje ime v 3 sekundah!');
   const [isFailing, setIsFailing] = useState<boolean>(false);
 
   const handleUserClick = (user: User) => {
@@ -23,10 +23,10 @@ export default function LoginScreen({ onSuccess }: LoginScreenProps): React.Reac
 
   const reset = useCallback(() => {
     setIsFailing(true);
-    setMessage('Napaka. Poskusite znova.');
+    setMessage('Niste uspeli, poskusite še enkrat!');
     setTimeout(() => {
       setClickedUsers(new Set());
-      setMessage('Pripravljeni?');
+      setMessage('Vsak naj klikne svoje ime v 3 sekundah!');
       setIsFailing(false);
     }, 2000);
   }, []);
@@ -51,7 +51,7 @@ export default function LoginScreen({ onSuccess }: LoginScreenProps): React.Reac
   return (
     <div className="flex flex-col items-center justify-center w-full animate-fadeIn">
       <h2 className="text-2xl md:text-3xl font-bold text-purple-400 mb-6">{message}</h2>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 w-full max-w-2xl">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 w-full max-w-2xl">
         {USERS.map((user) => (
           <button
             key={user}
