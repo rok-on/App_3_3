@@ -1,4 +1,3 @@
-
 export enum GameState {
   Login = 'LOGIN',
   TaskOne = 'TASK_ONE',
@@ -7,7 +6,7 @@ export enum GameState {
   Failure = 'FAILURE',
 }
 
-export type User = 'Vid' | 'Leonard' | 'Mark' | 'Tilen';
+export type User = 'Vid' | 'Mark' | 'Tilen';
 
 export enum ArrowDirection {
   Up = 'gor',
